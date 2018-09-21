@@ -1,104 +1,142 @@
-
 var canvas = document.getElementById("draw");
 var ctx = canvas.getContext("2d");
 
-var stack = [];
-var heap = [stack];
 
-Array.prototype.getfirstStackElement = function(){
-    return this[0][0];
-}
-Array.prototype.getElementFromStack = function(n){
-    return this[0][this.getStackLength()-n-1];
-}
-Array.prototype.getLastStackElement = function(){
-    return this[0][this.getStackLength()-1];
-}
-Array.prototype.getStackLength = function(){
-    return this[0].length;
-}
-
-Array.prototype.popTo = function(h){
-    if(this.getStackLength()>h){
-        this[0].pop();
-        Array.apply(this.popTo(h));
-    }
-}
-
-
-
-Array.prototype.invoke = function(n,arg){
-   
-        for(var c = arg.length; c>0 ; c--){ 
-              this[0].push(arg[c-1]); 
-        }
-    
-     this[n].apply(this);
-}
-
- function allocate(){
-      
-    this[this.getElementFromStack(1)] =this.getLastStackElement();  
-
-     for(var c = this.getElementFromStack(1)+ 1; c < this.getElementFromStack(1) + 
-         this.getLastStackElement(); c++){
-         this[c] = -1;   
-     } 
-     this.popTo(this.getStackLength()-1);
-     
-}
-
-
-//function iteratorGetNext(){
-//    return (this[0][this[this.getLastStackElement()+1]++]);   
-//}
-//function iteratorGetPrevious(){
-//  return (this[0][--this[this.getLastStackElement()+1]]);
-//}
-//function iteratorSetposition(){
-//  this[this.getElementFromStack(1)]=this[0].pop();
-//}
-function createIterator(){
-    this[this.getElementFromStack(2)+1] = 0;
-    this[this.getElementFromStack(2)+2] = this.getElementFromStack(1);
-    this[this.getElementFromStack(2)+3] = this.getLastStackElement();
-    
-    this.popTo(this.getStackLength()-2);
-    
+var conf = {
+	"DEBUG": false,
+	"Applications": [
+        [
+			["test"],
+			function() {
+				console.log("Application", this);
+				var l = this.getFromStack(0);    
+                console.log("document", document, l);
+              
+                this.allocate(5);
+                var self = this;
+                document.getElementById("1").addEventListener("click",function(){
+                     self.invokeFunc(2);
+                     self.invokeFunc(3);
+                },false);
+                
+			},function(){
+                
+                  var arr =  Array.from(document.getElementById("info").value.split(','));
+                
+                 this[this.getLastStackElemet()+1]=arr[0];
+                 this[this.getLastStackElemet()+2]=arr[1];
+                 this[this.getLastStackElemet()+3]=arr[2];
+                 this[this.getLastStackElemet()+4]=arr[3];
+                 
+               console.log(this);
+                
+            },function(){
+                ctx.beginPath();  
+                    
+                ctx.fillRect(
+                    this[this.getLastStackElemet()+1]        ,this[this.getLastStackElemet()+2]
+                    ,this[this.getLastStackElemet()+3]
+                    ,this[this.getLastStackElemet()+4]);
+                ctx.stroke(); 
+              
+                
+            }
+           
+		]
+	]
 }
 
-function beginiter(g){
-    this[this.getLastStackElement()+1]++;
-   
-    if(this[this.getLastStackElement()+1]<this[this[this.getLastStackElement()+3]]){
-        this[this.getLastStackElement()+2](this[this[this.getLastStackElement()+3]+this[this.getLastStackElement()+1]]);
-        beginiter.apply(this);
-   }
 
+
+
+function loaded(){
+	(function(config){
+		var heap = function(){}
+		heap.prototype = Object.create(Array.prototype);
+		heap.prototype.constructor = heap;
+		
         
+        heap.prototype.getLastStackElemet = function(){
+            return this[0][this[0].length-1];
+        }
+        
+        heap.prototype.getFromStack = function( value ) {
+			return this[0][this[0].length - 1 - value];
+		}
+		heap.prototype.invokeFunc = function( value ) {
+			this[value].apply( this );
+		}
+		heap.prototype.removeFromStack = function( value ) {
+			this[0] = this[0].slice( 0, this[0].length - 1 - value );
+		}
+		heap.prototype.loadApp = function( value ) {
+			for( var c = 0; c < value.length; c++ ) {
+				this.push( value[c] );
+			}
+		}
+        heap.prototype.allocate = function( value ){
+            this[0].push(this.length);
+            this[this.getLastStackElemet()] = value;
+                 
+            for( var a = this.getLastStackElemet()+1; a < this.getLastStackElemet()+value; a++ ){
+             this[a]=-1;
+           }
+           
+        }
+        //dealock
+        heap.prototype.deallocate = function( value ){
+            
+            for( var a = this[value]+value ; a > value-1 ; a-- ){
+                this[a]=0;
+            }
+      
+        }
+        
+        
+        
+        
+        
+		var RAM = Object.create( Array.prototype, {
+			runApp: {
+			    value: function(value) {
+					if (config.DEBUG) console.log( 'use `runApp` with', value );
+					RAM.push( Object.create( heap.prototype ) );
+					RAM.last.loadApp( config.Applications[value] );
+					if (config.DEBUG) console.log( 'log `runApp` with', RAM.last );
+					config.Applications[value][1].apply( RAM.last );
+				},
+				writable: false
+			},
+			invokeFunc: {
+				configurable: false,
+			    get: function() { 
+				    if (config.DEBUG) console.log('get `RAM.invokeFunc`');
+				    return function(value) {
+						if (config.DEBUG) console.log('use `RAM.invokeFunc` with', value);
+						config.Applications[value][1].apply([]);
+					} 
+				},
+			    set: function(value) {
+                    
+					if (config.DEBUG) console.log('Setting `RAM.invokeFunc` to', value);
+			    }
+			},
+			last: {
+				configurable: false,
+			    get: function() { 
+				    if (config.DEBUG) console.log('get `RAM.last`');
+				    return this[this.length - 1]; 
+				},
+			    set: function(value) {
+					if (config.DEBUG) console.log('Setting `RAM.last` to', value);
+					this[this.length - 1] = value;
+			    }
+			}
+		});
+		if (config.DEBUG) console.log( "config", config, config["Applications"][0], RAM )
+		RAM.runApp(0);
+       
+        
+// 		config.Applications[0][1].apply([])
+	})( conf );
 }
-
-
-function main(){
-    
-    heap[10] = allocate;
-    heap[11] = createIterator;
-  
-    heap[12] = beginiter;
-    //some test str
-    heap.invoke(10,[5,heap.length]);
-    
-    heap.invoke(10,[4,heap.length]);
-    heap.invoke(11,[stack[0],function(g){            
-        console.log(g+" from struct");
-    }]);
-    
-    heap.invoke(12,[]);
-    
-    console.log(heap);
-   
-
-}
-
-
-
