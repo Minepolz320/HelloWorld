@@ -1,6 +1,5 @@
 var canvas = document.getElementById("draw");
-var ctx = canvas.getContext("2d");
-
+ 
 
 var conf = {
 	"DEBUG": false,
@@ -11,36 +10,45 @@ var conf = {
 				console.log("Application", this);
 				var l = this.getFromStack(0);    
                 console.log("document", document, l);
-              
+             
+                
                 this.allocate(5);
+            
+               
+                
+                
+                this[this.getLastStackElemet()+5]=canvas.getContext("2d");
                 var self = this;
                 document.getElementById("1").addEventListener("click",function(){
                      self.invokeFunc(2);
-                     self.invokeFunc(3);
+                     self.Arginvoke([4,3]);
                 },false);
                 
+                
+ 
 			},function(){
+                 var arr =  Array.from(document.getElementById("info").value.split(','));
                 
-                  var arr =  Array.from(document.getElementById("info").value.split(','));
-                
-                 this[this.getLastStackElemet()+1]=arr[0];
-                 this[this.getLastStackElemet()+2]=arr[1];
-                 this[this.getLastStackElemet()+3]=arr[2];
-                 this[this.getLastStackElemet()+4]=arr[3];
-                 
-               console.log(this);
-                
-            },function(){
-                ctx.beginPath();  
+                for( var c = 0; c < arr.length; c++ ) {
+                    this[this.getLastStackElemet()+c+1]=arr[c]-0;
                     
-                ctx.fillRect(
-                    this[this.getLastStackElemet()+1]        ,this[this.getLastStackElemet()+2]
-                    ,this[this.getLastStackElemet()+3]
-                    ,this[this.getLastStackElemet()+4]);
-                ctx.stroke(); 
-              
+                }
+                 
+            }, function(){
+                
+                this.getFromStack(4).beginPath();
+                this.getFromStack(4).fillRect( 
+                                               this[0].pop()
+                                              ,this[0].pop()
+                                              ,this[0].pop()
+                                              ,this[0].pop()
+                                             );
+                this[0].pop().stroke();
+                
+                
                 
             }
+            
            
 		]
 	]
@@ -55,11 +63,9 @@ function loaded(){
 		heap.prototype = Object.create(Array.prototype);
 		heap.prototype.constructor = heap;
 		
-        
         heap.prototype.getLastStackElemet = function(){
             return this[0][this[0].length-1];
         }
-        
         heap.prototype.getFromStack = function( value ) {
 			return this[0][this[0].length - 1 - value];
 		}
@@ -74,18 +80,30 @@ function loaded(){
 				this.push( value[c] );
 			}
 		}
+        heap.prototype.Arginvoke = function( value ){
+        
+            for( var a = this[value[0]]+value[0] ; a > value[0] ; a-- ) {
+                this[0].push( this[a] ); 
+            }
+            
+            this.invokeFunc(value[1]);
+        }
+        
+        
+       
+        
+        
         heap.prototype.allocate = function( value ){
             this[0].push(this.length);
             this[this.getLastStackElemet()] = value;
-                 
+        
             for( var a = this.getLastStackElemet()+1; a < this.getLastStackElemet()+value; a++ ){
              this[a]=-1;
            }
            
         }
-        //dealock
+
         heap.prototype.deallocate = function( value ){
-            
             for( var a = this[value]+value ; a > value-1 ; a-- ){
                 this[a]=0;
             }
@@ -136,7 +154,5 @@ function loaded(){
 		if (config.DEBUG) console.log( "config", config, config["Applications"][0], RAM )
 		RAM.runApp(0);
        
-        
-// 		config.Applications[0][1].apply([])
 	})( conf );
 }
