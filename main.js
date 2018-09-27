@@ -10,45 +10,77 @@ var conf = {
 				console.log("Application", this);
 				var l = this.getFromStack(0);    
                 console.log("document", document, l);
+                var a  =  document.getElementById("parent");
              
+                  var self = this;
                 
-                this.allocate(5);
-            
-               
-                
-                
-                this[this.getLastStackElemet()+5]=canvas.getContext("2d");
-                var self = this;
-                document.getElementById("1").addEventListener("click",function(){
-                     self.invokeFunc(2);
-                     self.Arginvoke([4,3]);
+               var b1 = document.createElement("button");
+               b1.textContent="DrawOval";
+               b1.addEventListener("click",function(){
+                    self[0].push(2);
+                    self.invokeFunc(4);
                 },false);
                 
+                a.appendChild(b1);
+               
+              var b2 = document.createElement("button");
+               b2.textContent="DrawRect";
+                b2.addEventListener("click",function(){
+                
+                    self[0].push(3);
+                    self.invokeFunc(4);
+                    
+            },false);
+                a.appendChild(b2);
+                
+                
+               
+                
+            
+                this[this.getLastStackElemet()+5]=canvas.getContext("2d");
+              
+               
                 
  
 			},function(){
+                
+                //2
                  var arr =  Array.from(document.getElementById("info").value.split(','));
                 
-                for( var c = 0; c < arr.length; c++ ) {
-                    this[this.getLastStackElemet()+c+1]=arr[c]-0;
-                    
-                }
+                arr[4]=arr[4]*Math.PI/180;
+                arr[6]=arr[6]*Math.PI;
+                this.putToStack( arr );
+                
+                
+                this.thirdPartyFuncInvoke( arr.length, ["ellipse", 5] );
+          
+                
                  
             }, function(){
+              //rect
+                var arr =  Array.from(document.getElementById("info").value.split(','));
+                 this.putToStack( arr );
+                 this.thirdPartyFuncInvoke( arr.length, ["rect", 5] );
                 
-                this.getFromStack(4).beginPath();
-                this.getFromStack(4).fillRect( 
-                                               this[0].pop()
-                                              ,this[0].pop()
-                                              ,this[0].pop()
-                                              ,this[0].pop()
-                                             );
-                this[0].pop().stroke();
+                //3
                 
+                
+            }, function() {
+                
+                //4
+                
+                //DrawShape
+                this.thirdPartyFuncInvoke( 0, ["beginPath", 5] );
+                this.invokeFunc(this[0].pop());
+                this.thirdPartyFuncInvoke( 0, ["stroke", 5] );
+                //5
+            },canvas.getContext("2d")
+            ,function(){
+            
+                //Parse
                 
                 
             }
-            
            
 		]
 	]
@@ -85,9 +117,42 @@ function loaded(){
             for( var a = this[value[0]]+value[0] ; a > value[0] ; a-- ) {
                 this[0].push( this[a] ); 
             }
-            
             this.invokeFunc(value[1]);
         }
+        
+        
+        heap.prototype.putToStack = function( value ) {
+            for( var c = 0; c < value.length; c++ ) {
+				this[0].push( value[c] );
+			}
+        }
+         heap.prototype.getStackLength = function() {
+            return this[0].length;
+        }
+        
+        
+        heap.prototype.thirdPartyFuncInvoke = function( lengthDataScopeInStack, arg ) {
+            
+             
+			if ( arg ) {
+				this.putToStack( arg );
+			}
+
+        
+            this[this.getLastStackElemet()][this.getFromStack( 1 )]
+               
+                .apply(this[this.getLastStackElemet()], this[0].slice(this.getStackLength() - lengthDataScopeInStack - 2, lengthDataScopeInStack + 1) );
+			
+            
+            //Clear<>
+            for( var c = 0; c < lengthDataScopeInStack + 2; c++ ) {
+				this[0].pop();
+			}
+
+		}
+        
+        
+        
         
         
        
@@ -116,8 +181,8 @@ function loaded(){
         
 		var RAM = Object.create( Array.prototype, {
 			runApp: {
-			    value: function(value) {
-					if (config.DEBUG) console.log( 'use `runApp` with', value );
+                value: function(value) {
+                    if (config.DEBUG) console.log( 'use `runApp` with', value );
 					RAM.push( Object.create( heap.prototype ) );
 					RAM.last.loadApp( config.Applications[value] );
 					if (config.DEBUG) console.log( 'log `runApp` with', RAM.last );
@@ -127,7 +192,7 @@ function loaded(){
 			},
 			invokeFunc: {
 				configurable: false,
-			    get: function() { 
+                    get: function() { 
 				    if (config.DEBUG) console.log('get `RAM.invokeFunc`');
 				    return function(value) {
 						if (config.DEBUG) console.log('use `RAM.invokeFunc` with', value);
