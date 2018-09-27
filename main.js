@@ -117,14 +117,14 @@ function loaded(){
             for( var a = this[value[0]]+value[0] ; a > value[0] ; a-- ) {
                 this[0].push( this[a] ); 
             }
+            
             this.invokeFunc(value[1]);
         }
         
-        
-        heap.prototype.putToStack = function( value ) {
+                heap.prototype.putToStack = function( value ) {
             for( var c = 0; c < value.length; c++ ) {
-				this[0].push( value[c] );
-			}
+                this[0].push( value[c] );
+            }
         }
          heap.prototype.getStackLength = function() {
             return this[0].length;
@@ -134,27 +134,28 @@ function loaded(){
         heap.prototype.thirdPartyFuncInvoke = function( lengthDataScopeInStack, arg ) {
             
              
-			if ( arg ) {
-				this.putToStack( arg );
-			}
+            if ( arg ) {
+                this.putToStack( arg );
+            }
 
         
             this[this.getLastStackElemet()][this.getFromStack( 1 )]
                
                 .apply(this[this.getLastStackElemet()], this[0].slice(this.getStackLength() - lengthDataScopeInStack - 2, lengthDataScopeInStack + 1) );
-			
+            
             
             //Clear<>
             for( var c = 0; c < lengthDataScopeInStack + 2; c++ ) {
-				this[0].pop();
-			}
+                this[0].pop();
+            }
 
-		}
+        }
         
         
         
         
         
+
        
         
         
@@ -181,8 +182,8 @@ function loaded(){
         
 		var RAM = Object.create( Array.prototype, {
 			runApp: {
-                value: function(value) {
-                    if (config.DEBUG) console.log( 'use `runApp` with', value );
+			    value: function(value) {
+					if (config.DEBUG) console.log( 'use `runApp` with', value );
 					RAM.push( Object.create( heap.prototype ) );
 					RAM.last.loadApp( config.Applications[value] );
 					if (config.DEBUG) console.log( 'log `runApp` with', RAM.last );
@@ -192,7 +193,7 @@ function loaded(){
 			},
 			invokeFunc: {
 				configurable: false,
-                    get: function() { 
+			    get: function() { 
 				    if (config.DEBUG) console.log('get `RAM.invokeFunc`');
 				    return function(value) {
 						if (config.DEBUG) console.log('use `RAM.invokeFunc` with', value);
