@@ -8,37 +8,38 @@ var conf = {
 			["test"],
 			function() {
 				console.log("Application", this);
-				var l = this.getFromStack(0);    
+				var l = this.getFromStack(0);   
                 console.log("document", document, l);
-                var a  =  document.getElementById("parent");
-             
-                  var self = this;
                 
+                var self = this;
+                var a  =  document.getElementById("parent");
+                 
+                  
                var b1 = document.createElement("button");
                b1.textContent="DrawOval";
                b1.addEventListener("click",function(){
                     self[0].push(2);
                     self.invokeFunc(4);
                 },false);
-                
                 a.appendChild(b1);
                
               var b2 = document.createElement("button");
                b2.textContent="DrawRect";
                 b2.addEventListener("click",function(){
-                
                     self[0].push(3);
                     self.invokeFunc(4);
-                    
-            },false);
+                },false);
                 a.appendChild(b2);
             
+           
+                
+                
  
 			},function(){
                 
                 //2
-                 var arr =  Array.from(document.getElementById("info").value.split(','));
                 
+                var arr =  Array.from(document.getElementById("info").value.split(','));
                 arr[4]=arr[4]*Math.PI/180;
                 arr[6]=arr[6]*Math.PI;
                 this.putToStack( arr );
@@ -51,27 +52,30 @@ var conf = {
                 var arr =  Array.from(document.getElementById("info").value.split(','));
                  this.putToStack( arr );
                  this.thirdPartyFuncInvoke( arr.length, ["rect", 5] );
-                
                 //3
                 
                 
             }, function() {
                 
                 //4
-                
                 //DrawShape
+                this.invokeFunc(6); 
+                
                 this.thirdPartyFuncInvoke( 0, ["beginPath", 5] );
+                this[5].strokeStyle   = this[0].pop();
                 this.invokeFunc(this[0].pop());
                 this.thirdPartyFuncInvoke( 0, ["stroke", 5] );
+                    
+                
                 //5
             },canvas.getContext("2d")
-            ,function(){
             
-                //Parse
-                
+            ,function(){
+                //SetCOlorS
+                this[0].push(document.getElementById("col").value);    
                 
             }
-           
+            
 		]
 	]
 }
@@ -128,7 +132,6 @@ function loaded(){
                 this.putToStack( arg );
             }
 
-        
             this[this.getLastStackElemet()][this.getFromStack( 1 )]
                
                 .apply(this[this.getLastStackElemet()], this[0].slice(this.getStackLength() - lengthDataScopeInStack - 2, lengthDataScopeInStack + 1) );
@@ -141,12 +144,6 @@ function loaded(){
 
         }
         
-        
-        
-        
-        
-
-       
         
         
         heap.prototype.allocate = function( value ){
