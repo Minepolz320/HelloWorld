@@ -32,15 +32,7 @@ var conf = {
                     
             },false);
                 a.appendChild(b2);
-                
-                
-               
-                
             
-                this[this.getLastStackElemet()+5]=canvas.getContext("2d");
-              
-               
-                
  
 			},function(){
                 
@@ -50,8 +42,6 @@ var conf = {
                 arr[4]=arr[4]*Math.PI/180;
                 arr[6]=arr[6]*Math.PI;
                 this.putToStack( arr );
-                
-                
                 this.thirdPartyFuncInvoke( arr.length, ["ellipse", 5] );
           
                 
